@@ -1,25 +1,39 @@
 package POJO;
 
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 
 public class ScoreBoard {
 
-    public LinkedHashMap<Long, Match> scoreBoardMap;
+    public LinkedHashSet<Match> scoreBoardSet;
+    String scoreBoardString = "";
 
     public ScoreBoard() {
-        scoreBoardMap = new LinkedHashMap<Long, Match>();
+        scoreBoardSet = new LinkedHashSet<Match>();
     }
 
-    public LinkedHashMap<Long, Match> getScoreBoard() {
-        if (scoreBoardMap == null) {
-            scoreBoardMap = new LinkedHashMap<Long, Match>();
+    public String getScoreBoard() {
+        if (scoreBoardString == null || !scoreBoardString.isEmpty()) {
+            scoreBoardString = "";
         }
-        return scoreBoardMap;
+        for (Match match : scoreBoardSet) {
+            scoreBoardString = scoreBoardString.concat(match.toString() + "\n");
+        }
+        return scoreBoardString;
     }
 
-    public Long startNewMatch(String homeTeam, String awayTeam) {
+    public Match startNewMatch(String homeTeam, String awayTeam) {
         Match newMatch = new Match(homeTeam, awayTeam);
-        scoreBoardMap.putLast(newMatch.startTime.getEpochSecond(), newMatch);
-        return newMatch.startTime.getEpochSecond();
+        scoreBoardSet.addLast(newMatch);
+        return newMatch;
+    }
+
+    public String updateScore(String inputMatch, String score) {
+
+        for (Match loopMatch : scoreBoardSet) {
+            if (loopMatch.equalsMatchName(inputMatch)) {
+                loopMatch.changeScore(score);
+            }
+        }
+        return getScoreBoard();
     }
 }
