@@ -1,7 +1,8 @@
 package Tests;
 
+import Exceptions.MissingMatchException;
 import POJO.Match;
-import POJO.ScoreBoard;
+import UseCases.ScoreBoardUseCases;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,11 +11,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ScoreBoardTest {
-    ScoreBoard sb;
+    ScoreBoardUseCases sb = new ScoreBoardUseCases();
 
     @BeforeEach
     void setUp() {
-        sb = new ScoreBoard();
         sb.startNewMatch("Mexico", "Canada");
         sb.startNewMatch("Spain", "Germany");
         sb.startNewMatch("France", "Uruguay");
@@ -27,13 +27,13 @@ class ScoreBoardTest {
     }
 
     @Test
-    void testGetScoreBoard() {
+    void testGetSummary() {
         assertEquals("""
-                Mexico 0 - Canada 0
-                Spain 0 - Germany 0
-                France 0 - Uruguay 0
                 Italy 0 - Argentina 0
-                """, sb.getScoreBoard());
+                France 0 - Uruguay 0
+                Spain 0 - Germany 0
+                Mexico 0 - Canada 0
+                """, sb.getSummary());
     }
 
     @Test
@@ -45,12 +45,56 @@ class ScoreBoardTest {
 
     @Test
     void testUpdateScore() {
-        assertEquals("""
-                France 0 - Uruguay 1
-                Mexico 0 - Canada 0
-                Spain 0 - Germany 0
-                Italy 0 - Argentina 0
-                """, sb.updateScore("France - Uruguay", "0:1"));
+        try {
+            assertEquals("""
+                    France 0 - Uruguay 1
+                    Italy 0 - Argentina 0
+                    Spain 0 - Germany 0
+                    Mexico 0 - Canada 0
+                    """, sb.updateScore("France - Uruguay", "0:1"));
+            assertEquals("""
+                    France 1 - Uruguay 1
+                    Italy 0 - Argentina 0
+                    Spain 0 - Germany 0
+                    Mexico 0 - Canada 0
+                    """, sb.updateScore("France - Uruguay", "1:1"));
+            assertEquals("""
+                    France 1 - Uruguay 1
+                    Mexico 1 - Canada 0
+                    Italy 0 - Argentina 0
+                    Spain 0 - Germany 0
+                    """, sb.updateScore("Mexico - Canada", "1:0"));
+            assertEquals("""
+                    France 1 - Uruguay 1
+                    Mexico 2 - Canada 0
+                    Italy 0 - Argentina 0
+                    Spain 0 - Germany 0
+                    """, sb.updateScore("Mexico - Canada", "2:0"));
+        } catch (MissingMatchException e) {
+            System.out.println(e.getMessage() + e.getMatchName());
+        }
+    }
+
+    @Test
+    void testUpdateScoreError() {
+        try {
+            sb.updateScore("Slovenia - Austria", "1:0");
+        } catch (MissingMatchException e) {
+            System.out.println(e.getMessage() + e.getMatchName());
+        }
+    }
+    @Test
+    void testStopMatch() {
+        try {
+            assertEquals("""
+                    France 1 - Uruguay 1
+                    Mexico 2 - Canada 0
+                    Italy 0 - Argentina 0
+                    Spain 0 - Germany 0
+                    """, sb.stopMatch("Spain - Germany"));
+        } catch (MissingMatchException e) {
+            System.out.println(e.getMessage() + e.getMatchName());
+        }
     }
 
 }
