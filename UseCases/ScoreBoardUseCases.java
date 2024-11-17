@@ -1,15 +1,32 @@
 package UseCases;
 
 import Exceptions.MissingMatchException;
+import Exceptions.UnsupportedScoreUpdateException;
 import POJO.Match;
 import POJO.ScoreBoard;
 
+import java.util.Comparator;
 import java.util.Stack;
 
+/**
+ * Methods for manipulating ScoreBoard POJO class
+ *
+ * @author ziga
+ */
 public class ScoreBoardUseCases {
     ScoreBoard sb;
     String scoreBoardString;
 
+    public ScoreBoardUseCases() {
+        sb = new ScoreBoard();
+        scoreBoardString = "";
+    }
+
+    /**
+     * Returns a list of matches currently played sorted by score sum and time of start descending
+     *
+     * @return The formated and sorted list.
+     */
     public String getSummary() {
         if (!scoreBoardString.isEmpty()) {
             scoreBoardString = "";
@@ -20,18 +37,30 @@ public class ScoreBoardUseCases {
         return scoreBoardString;
     }
 
-    public ScoreBoardUseCases() {
-        sb = new ScoreBoard();
-        scoreBoardString = "";
-    }
-
-    public Match startNewMatch(String homeTeam, String awayTeam) {
+    /**
+     * Starts a new match and adds it to the list of matches currently in progress
+     *
+     * @param homeTeam The name of the home team.
+     * @param awayTeam The name of the away team.
+     * @return The formated and sorted list.
+     */
+    public String startNewMatch(String homeTeam, String awayTeam) {
         Match newMatch = new Match(homeTeam, awayTeam);
         sb.getMatchesStack().push(newMatch);
-        return newMatch;
+        return getSummary();
     }
 
-    public String updateScore(String inputMatch, String score) throws MissingMatchException {
+    /**
+     * Updates a score for a match in progress.
+     *
+     * @param inputMatch The name of the match formated as "HomeTeamName - AwayTeamName"
+     * @param score      The new score formated as "HomeScore - AwayScore" that needs to be entered onto the scoreboard
+     * @return The formated and sorted list.
+     * @throws MissingMatchException           if a match with an entered name cannot be found
+     * @throws UnsupportedScoreUpdateException if either home or away part of the entered score is negative, has lowered
+     *                                         or has changed by more than one
+     */
+    public String updateScore(String inputMatch, String score) throws MissingMatchException, UnsupportedScoreUpdateException {
         Match match2Update;
         boolean matchInserted = false;
         Stack<Match> laterMatches = new Stack<>();
@@ -43,10 +72,10 @@ public class ScoreBoardUseCases {
             if (loopMatch.equalsMatchName(inputMatch)) {
                 //found the match updating score
                 match2Update = loopMatch;
-                MatchUseCases.changeScore(match2Update, score);
+                MatchUseCases.updateScore(match2Update, score);
                 //now looking through the matches that are in the list after the updated match
                 //to see where exactly to put the updated match according to the updated score
-                while(!laterMatches.isEmpty()) {
+                while (!laterMatches.isEmpty()) {
                     Match innerLoopMatch = laterMatches.pop();
                     if (innerLoopMatch.getScore() < match2Update.getScore()) {
                         sb.getMatchesStack().push(innerLoopMatch);
@@ -80,7 +109,61 @@ public class ScoreBoardUseCases {
         return getSummary();
     }
 
-    public String stopMatch(String s) throws MissingMatchException {
-        return  getSummary();
+    /**
+     * Updates a score for a match in progress using streams.
+     *
+     * @param inputMatch The name of the match formated as "HomeTeamName - AwayTeamName"
+     * @param score      The new score formated as "HomeScore - AwayScore" that needs to be entered onto the scoreboard
+     * @return The formated and sorted list.
+     * @throws MissingMatchException           if a match with an entered name cannot be found
+     * @throws UnsupportedScoreUpdateException if either home or away part of the entered score is negative, has lowered
+     *                                         or has changed by more than one
+     */
+    public String updateScoreWithStream(String inputMatch, String score) throws MissingMatchException, UnsupportedScoreUpdateException {
+        Match match2Update = sb.getMatchesStack().stream()
+                .filter(match -> match.equalsMatchName(inputMatch))
+                .findFirst()
+                .orElse(null);
+
+        if (match2Update != null) {
+            MatchUseCases.updateScore(match2Update, score);
+        } else {
+            throw new MissingMatchException(inputMatch, "Could not find entered match: ");
+        }
+
+        Comparator<Match> compareByScoreName = Comparator
+                .comparing(Match::getScore)
+                .thenComparing(Match::getStartTime);
+
+        Stack<Match> stack = new Stack<>();
+        if (stack.addAll(sb.getMatchesStack().stream()
+                .sorted(compareByScoreName)
+                .toList())) {
+            sb.setMatchesStack(stack);
+        }
+
+        return getSummary();
+    }
+
+    /**
+     * Finishes a match in progress
+     *
+     * @param inputMatch The name of the match formated as "HomeTeamName - AwayTeamName"
+     * @return The formated and sorted list.
+     * @throws MissingMatchException if a match with an entered name cannot be found
+     */
+    public String finishMatch(String inputMatch) throws MissingMatchException {
+        Match match2Remove = null;
+        for (Match loopMatch : sb.getMatchesStack()) {
+            if (loopMatch.equalsMatchName(inputMatch)) {
+                match2Remove = loopMatch;
+                sb.getMatchesStack().remove(match2Remove);
+                break;
+            }
+        }
+        if (match2Remove == null) {
+            throw new MissingMatchException(inputMatch, "Could not find entered match: ");
+        }
+        return getSummary();
     }
 }

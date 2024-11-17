@@ -1,6 +1,7 @@
 package POJO;
 
 import java.time.Instant;
+import java.util.Objects;
 
 public class Match {
     public String homeTeam;
@@ -18,22 +19,6 @@ public class Match {
         this.homeScore = 0;
         this.awayScore = 0;
         startTime = Instant.now();
-    }
-
-    public String getHomeTeam() {
-        return homeTeam;
-    }
-
-    public void setHomeTeam(String homeTeam) {
-        this.homeTeam = homeTeam;
-    }
-
-    public String getAwayTeam() {
-        return awayTeam;
-    }
-
-    public void setAwayTeam(String awayTeam) {
-        this.awayTeam = awayTeam;
     }
 
     public int getHomeScore() {
@@ -69,4 +54,9 @@ public class Match {
         return matchName.equals(homeTeam + " - " + awayTeam);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Match match)) return false;
+        return Objects.equals(homeTeam, match.homeTeam) && Objects.equals(awayTeam, match.awayTeam);
+    }
 }
