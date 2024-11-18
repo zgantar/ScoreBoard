@@ -1,5 +1,7 @@
 package POJO;
 
+import Exceptions.UnsupportedScoreUpdateException;
+
 import java.time.Instant;
 import java.util.Objects;
 
@@ -31,6 +33,29 @@ public class Match {
 
     public int getScore() {
         return this.homeScore + this.awayScore;
+    }
+
+    /**
+     * Changes the score of a match.
+     *
+     * @param homeScore The new score for home team
+     * @param awayScore The new score for away team
+     * @throws UnsupportedScoreUpdateException if an entered new score is:
+     *                                         not in a "X:Y" format
+     *                                         either home or away score is a negative number
+     *                                         either home or away score is at most one bigger than current score
+     */
+    public void updateScore(int homeScore, int awayScore) throws UnsupportedScoreUpdateException {
+        if (homeScore < 0 || homeScore - this.getHomeScore() > 1) {
+            throw new UnsupportedScoreUpdateException(String.valueOf(homeScore), "Entered home score must be a positive number equal or" +
+                    " at most one bigger than current score ");
+        }
+        if (awayScore < 0 || awayScore - this.getAwayScore() > 1) {
+            throw new UnsupportedScoreUpdateException(String.valueOf(awayScore), "Entered away score must be a positive number equal or" +
+                    " at most one bigger than current score ");
+        }
+        this.setHomeScore(homeScore);
+        this.setAwayScore(awayScore);
     }
 
     public int getAwayScore() {

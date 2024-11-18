@@ -4,11 +4,12 @@ The way the code is written is to simplify the use of this library so all the in
 all parameters are strings. In this way there is no need to know the classes used for 
 retaining data and one can simply interact with it in more human friendly way.
 
-All the required functionality is done and tested. I've created two methods for updating 
-score, one using streams functionality and one updating the list by moving through the 
+All the required functionality is done and covered with tests. I've created three ways of updating 
+score, one using streams functionality, one updating the list by moving through the 
 stack "manually" since I wanted to show that with such a simple sorting requirements, 
 "manual" functionality is quicker but the streams functionality is much more code 
-maintenance friendly.
+maintenance friendly. As the last way I've also done the demanded way of updating score 
+for a match. 
 
 Project consists of three packages:
 - POJO 

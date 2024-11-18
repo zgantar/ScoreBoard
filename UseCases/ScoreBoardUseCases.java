@@ -120,16 +120,9 @@ public class ScoreBoardUseCases {
      *                                         or has changed by more than one
      */
     public String updateScoreWithStream(String inputMatch, String score) throws MissingMatchException, UnsupportedScoreUpdateException {
-        Match match2Update = sb.getMatchesStack().stream()
-                .filter(match -> match.equalsMatchName(inputMatch))
-                .findFirst()
-                .orElse(null);
+        Match match2Update = findMatch(inputMatch);
 
-        if (match2Update != null) {
-            MatchUseCases.updateScore(match2Update, score);
-        } else {
-            throw new MissingMatchException(inputMatch, "Could not find entered match: ");
-        }
+        MatchUseCases.updateScore(match2Update, score);
 
         Comparator<Match> compareByScoreName = Comparator
                 .comparing(Match::getScore)
@@ -146,7 +139,25 @@ public class ScoreBoardUseCases {
     }
 
     /**
-     * Finishes a match in progress
+     * Finds a match in progress
+     *
+     * @param matchName The name of the match to find.
+     * @return The found match.
+     * @throws MissingMatchException if a match with an entered name cannot be found
+     */
+    public Match findMatch(String matchName) throws MissingMatchException {
+        Match returnMatch = sb.getMatchesStack().stream()
+                .filter(match -> match.equalsMatchName(matchName))
+                .findFirst()
+                .orElse(null);
+        if (returnMatch == null) {
+            throw new MissingMatchException(matchName, "Could not find entered match: ");
+        }
+        return returnMatch;
+    }
+
+    /**
+     * Finish a match in progress
      *
      * @param inputMatch The name of the match formated as "HomeTeamName - AwayTeamName"
      * @return The formated and sorted list.
@@ -164,6 +175,25 @@ public class ScoreBoardUseCases {
         if (match2Remove == null) {
             throw new MissingMatchException(inputMatch, "Could not find entered match: ");
         }
+        return getSummary();
+    }
+
+    /**
+     * Reorders match stack after a change of score
+     * @return The formated and sorted list.
+     */
+    public String reorderScoreBoard() {
+        Comparator<Match> compareByScoreName = Comparator
+                .comparing(Match::getScore)
+                .thenComparing(Match::getStartTime);
+
+        Stack<Match> stack = new Stack<>();
+        if (stack.addAll(sb.getMatchesStack().stream()
+                .sorted(compareByScoreName)
+                .toList())) {
+            sb.setMatchesStack(stack);
+        }
+
         return getSummary();
     }
 }
