@@ -15,11 +15,9 @@ import java.util.Stack;
  */
 public class ScoreBoardUseCases {
     ScoreBoard sb;
-    String scoreBoardString;
 
     public ScoreBoardUseCases() {
         sb = new ScoreBoard();
-        scoreBoardString = "";
     }
 
     /**
@@ -28,9 +26,7 @@ public class ScoreBoardUseCases {
      * @return The formated and sorted list.
      */
     public String getSummary() {
-        if (!scoreBoardString.isEmpty()) {
-            scoreBoardString = "";
-        }
+        String scoreBoardString = "";
         for (Match match : sb.getMatchesStack()) {
             scoreBoardString = (match.toString() + "\n").concat(scoreBoardString);
         }
